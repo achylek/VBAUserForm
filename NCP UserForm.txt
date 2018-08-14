@@ -1,0 +1,136 @@
+Private Sub AddButton_Click()
+Dim iRow As Long
+Dim ws As Worksheet
+Set ws = Worksheets("Sheet2")
+
+'find first empty row in database
+iRow = ws.Cells.Find(What:="*", SearchOrder:=xlRows, _
+    SearchDirection:=xlPrevious, LookIn:=xlValues).Row + 1
+
+'check for a Name number
+If Trim(Me.tbo_TicketNumber.Value) = "" Then
+  Me.tbo_TicketNumber.SetFocus
+  MsgBox "Please complete the form"
+  Exit Sub
+End If
+
+'check that Agent is filled when Resolution is Rejected
+If Me.cbo_Resolution.Value = "REJECTED" And Trim(Me.tbo_Agent.Value) = "" Then
+    Me.tbo_Agent.SetFocus
+    MsgBox "Error: Need Agent for 'Rejected'!"
+    Exit Sub
+End If
+
+'check that ticket number is 10 characters
+If Len(Trim(Me.tbo_TicketNumber)) <> 10 Then
+    Me.tbo_TicketNumber.SetFocus
+    MsgBox "Error: Ticket Number needs 10 characters!"
+    Exit Sub
+End If
+
+
+'check that all fields are full
+If Me.chb_OrderUpdate.Value = False And _
+    (Me.cbo_Resolution.Value = "" Or _
+    Me.cbo_Reason.Value = "" Or _
+    Me.cbo_Prod.Value = "" Or _
+    Me.cbo_Type.Value = "") Then
+    Me.tbo_TicketNumber.SetFocus
+    MsgBox "Error: Fill out all fields!"
+    Exit Sub
+End If
+
+'copy the data to the database
+ws.Cells(iRow, 1).Value = Now
+ws.Cells(iRow, 2).Value = Application.UserName
+ws.Cells(iRow, 3).Value = Me.tbo_TicketNumber.Value
+ws.Cells(iRow, 4).Value = Me.cbo_Resolution.Value
+ws.Cells(iRow, 5).Value = Me.cbo_Reason.Value
+ws.Cells(iRow, 6).Value = Me.tbo_Agent.Value
+ws.Cells(iRow, 7).Value = Me.cbo_Prod.Value
+ws.Cells(iRow, 8).Value = Me.cbo_Type.Value
+ws.Cells(iRow, 9).Value = Me.chb_OrderUpdate.Value
+ws.Cells(iRow, 10).Value = Month(Date)
+ws.Cells(iRow, 11).Value = Day(Date)
+ws.Cells(iRow, 12).Value = Format(Date, "ww")
+ws.Cells(iRow, 13).Value = Date
+
+MsgBox "Data added", vbOKOnly + vbInformation, "Data Added"
+
+'clear the data
+Me.tbo_TicketNumber.Value = ""
+Me.cbo_Resolution.Value = ""
+Me.cbo_Reason.Value = ""
+Me.tbo_Agent.Value = ""
+Me.cbo_Prod.Value = ""
+Me.cbo_Type.Value = ""
+Me.chb_OrderUpdate.Value = False
+Me.tbo_TicketNumber.SetFocus
+
+End Sub
+
+Private Sub cbo_Resolution_Change()
+Me.cbo_Reason = ""
+
+Select Case Me.cbo_Resolution
+    Case "Resolution"
+        Me.cbo_Reason.RowSource = "Resolution"
+    
+    Case "PROCESSED"
+        Me.cbo_Reason.RowSource = "PROCESSED"
+        
+    Case "PENDING"
+        Me.cbo_Reason.RowSource = "PENDING"
+        
+    Case "REJECTED"
+        Me.cbo_Reason.RowSource = "REJECTED"
+        
+End Select
+    
+End Sub
+
+
+Private Sub chb_OrderUpdate_Click()
+
+End Sub
+
+Private Sub ClearButton_Click()
+Me.tbo_TicketNumber.Value = ""
+Me.cbo_Resolution.Value = ""
+Me.cbo_Reason.Value = ""
+Me.cbo_Prod.Value = ""
+Me.cbo_Type.Value = ""
+Me.tbo_Agent.Value = ""
+Me.chb_OrderUpdate.Value = False
+Me.tbo_TicketNumber.SetFocus
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+Dim lastrow As Long
+Dim lastcolumn As Long
+lastcolumn = ActiveSheet.Cells(1, Columns.Count).End(xlToLeft).Column
+
+With Worksheets("sheet1")
+
+    For I = 1 To lastcolumn
+        With .Columns(I)
+        lastrow = Sheet1.Cells(Rows.Count, I).End(xlUp).Row
+            With Range(Cells(1, I), Cells(lastrow, I))
+            Range(Cells(1, I), Cells(lastrow, I)).Select
+            Selection.CreateNames Top:=True
+            End With
+        End With
+    Next I
+End With
+
+Me.cbo_Resolution.RowSource = "Resolution"
+Me.cbo_Prod.RowSource = "PROD"
+Me.cbo_Type.RowSource = "TYPE"
+Me.tbo_TicketNumber.SetFocus
+            
+End Sub
